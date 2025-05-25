@@ -1,0 +1,81 @@
+﻿@using Microsoft.AspNetCore.Html
+@using System.Text
+@model List<WebApplication1.Models.CashCollection>
+
+@{
+    ViewData["Title"] = "Список коллекций";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Сумма</th>
+            <th>Дата</th>
+            <th>Телефон</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @functions {
+            public static IHtmlContent ExternalHelper(IEnumerable<WebApplication1.Models.CashCollection> items) {
+                var html = new System.Text.StringBuilder();
+                foreach (var item in items) {
+                    html.Append($"<tr><td>{item.Id}</td><td>{item.CollectionName}</td><td>{item.Amount:C}</td><td>{item.CreationDate:d}</td><td>{item.Phone}</td><td>{(item.IsCompleted ? "Завершена" : "В процессе")}</td><td><a asp-action=\"Details\" asp-route-id=\"{item.Id}\">Просмотр</a> | <a asp-action=\"Edit\" asp-route-id=\"{item.Id}\">Редактировать</a></td></tr>");
+                }
+                return new HtmlString(html.ToString());
+            }
+        }
+        @{
+            bool useInternal = false;
+            if (TempData["UseInternalHelper"] != null)
+            {
+                useInternal = (bool)TempData["UseInternalHelper"];
+            }
+        }
+        @if (useInternal)
+        {
+            int index = 0;
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.CollectionName</td>
+                    <td>@item.Amount.ToString("C")</td>
+                    <td>@item.CreationDate.ToString("d")</td>
+                    <td>@item.Phone</td>
+                    <td>@(item.IsCompleted ? "Завершена" : "В процессе")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">Просмотр</a> |
+                        <a asp-action="Edit" asp-route-id="@item.Id">Редактировать</a>
+                    </td>
+                </tr>
+                index++;
+            }
+        }
+        else
+        {
+            @ExternalHelper(Model)
+        }
+    </tbody>
+</table>
+
+<form asp-action="SetHelper" method="post" style="margin-bottom:10px;">
+    <input type="hidden" name="useInternal" value="@(useInternal ? "false" : "true")" />
+    <button type="submit" class="btn btn-secondary">
+        Переключить способ вывода (@(useInternal ? "Внешний" : "Внутренний"))
+    </button>
+</form>
+
+<a asp-action="Create" class="btn btn-primary">Создать новую</a>
+
+@{
+    if (ViewBag.CurrentIndex != null)
+    {
+        <div>Текущий номер экземпляра: @ViewBag.CurrentIndex</div>
+    }
+}
